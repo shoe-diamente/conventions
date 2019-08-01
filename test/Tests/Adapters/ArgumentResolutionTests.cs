@@ -88,6 +88,23 @@ namespace GraphQL.Conventions.Tests.Adapters
             result.Data.ShouldHaveFieldWithValue("nonNullablePrimitiveField", "Foo");
         }
 
+        #nullable enable
+        [Test]
+        public async Task Can_Resolve_CSharp8_NonNullable_Primitive_Argument()
+        {
+            var result = await ExecuteQuery(
+                @"{ cSharp8NonNullablePrimitiveField(cSharp8NonNullablePrimitiveArg: ""Foo"") }");
+            result.ShouldHaveNoErrors();
+            result.Data.ShouldHaveFieldWithValue("cSharp8NonNullablePrimitiveField", "Foo");
+
+            result = await ExecuteQuery(
+                @"query Test($arg: String!) { cSharp8NonNullablePrimitiveField(cSharp8NonNullablePrimitiveArg: $arg) }",
+                new Dictionary<string, object> { { "arg", "Foo" } });
+            result.ShouldHaveNoErrors();
+            result.Data.ShouldHaveFieldWithValue("cSharp8NonNullablePrimitiveField", "Foo");
+        }
+        #nullable restore
+
         [Test]
         public async Task Can_Resolve_Nullable_Identifier_Argument()
         {
@@ -701,6 +718,11 @@ namespace GraphQL.Conventions.Tests.Adapters
 
             public NonNull<string> NonNullablePrimitiveField(NonNull<string> nonNullablePrimitiveArg) =>
                 nonNullablePrimitiveArg;
+
+            #nullable enable
+            public string cSharp8NonNullablePrimitiveField(string cSharp8NonNullablePrimitiveArg) =>
+                cSharp8NonNullablePrimitiveArg;
+            #nullable restore
 
             public int? DefaultNullableArgumentValueField(int? arg = 999) =>
                 arg;

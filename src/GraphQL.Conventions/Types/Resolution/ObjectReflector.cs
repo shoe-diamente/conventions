@@ -5,6 +5,7 @@ using System.Reflection;
 using GraphQL.Conventions.Handlers;
 using GraphQL.Conventions.Types.Descriptors;
 using GraphQL.Conventions.Types.Resolution.Extensions;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Types.Resolution
 {
@@ -60,21 +61,47 @@ namespace GraphQL.Conventions.Types.Resolution
                 throw new ArgumentException("Schema has no query type.");
             }
 
+            var queryProp = queryField.ToContextualProperty();
+
             var schemaInfo = new GraphSchemaInfo();
             _typeResolver.ActiveSchema = schemaInfo;
-            schemaInfo.Query = GetType(queryField.PropertyType.GetTypeInfo());
+            schemaInfo.Query = GetType(queryField);
             schemaInfo.Mutation = mutationField != null
-                ? GetType(mutationField.PropertyType.GetTypeInfo())
+                ? GetType(mutationField)
                 : null;
             schemaInfo.Subscription = subscriptionField != null
-                ? GetType(subscriptionField.PropertyType.GetTypeInfo())
+                ? GetType(subscriptionField)
                 : null;
             schemaInfo.Types.AddRange(_typeCache.Entities.Where(t => IsValidType(t.GetTypeRepresentation())));
 
             return schemaInfo;
         }
 
-        public GraphTypeInfo GetType(TypeInfo typeInfo, bool isInjected = false)
+        public GraphTypeInfo GetType(PropertyInfo property, bool isInjected = false)
+        {
+            var contextual = property.ToContextualProperty();
+            return GetType(property.PropertyType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+        }
+
+        public GraphTypeInfo GetType(ParameterInfo parameter, bool isInjected = false)
+        {
+            var contextual = parameter.ToContextualParameter();
+            return GetType(parameter.ParameterType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+        }
+
+        public GraphTypeInfo GetType(MethodInfo method, bool isInjected = false)
+        {
+            var contextual = method.ToContextualMember();
+            return GetType(method.ReturnType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+        }
+
+        public GraphTypeInfo GetType(FieldInfo field, bool isInjected = false)
+        {
+            var contextual = field.ToContextualField();
+            return GetType(field.FieldType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+        }
+
+        public GraphTypeInfo GetType(TypeInfo typeInfo, bool isInjected = false, bool? overrideNullable = null)
         {
             var type = _typeCache.GetEntity(typeInfo);
             if (type != null)
@@ -98,6 +125,11 @@ namespace GraphQL.Conventions.Types.Resolution
             {
                 type.IsIgnored = true;
                 return type;
+            }
+
+            if (overrideNullable.HasValue)
+            {
+                type.IsNullable = overrideNullable.Value;
             }
 
             var isInjectedType =
@@ -278,19 +310,19 @@ namespace GraphQL.Conventions.Types.Resolution
             var propertyInfo = memberInfo as PropertyInfo;
             if (propertyInfo != null)
             {
-                field.Type = GetType(propertyInfo.PropertyType.GetTypeInfo());
+                field.Type = GetType(propertyInfo);
             }
 
             var fieldInfo = memberInfo as FieldInfo;
             if (fieldInfo != null)
             {
-                field.Type = GetType(fieldInfo.FieldType.GetTypeInfo());
+                field.Type = GetType(fieldInfo);
             }
 
             var methodInfo = memberInfo as MethodInfo;
             if (methodInfo != null)
             {
-                field.Type = GetType(methodInfo.ReturnType.GetTypeInfo());
+                field.Type = GetType(methodInfo);
                 field.Arguments.AddRange(GetArguments(methodInfo));
             }
 
@@ -306,27 +338,27 @@ namespace GraphQL.Conventions.Types.Resolution
 
             if (_metaDataHandler.HasAttribute<InjectAttribute>(parameterInfo))
             {
-                argument.Type = GetType(parameterTypeInfo, true);
+                argument.Type = GetType(parameterInfo, true);
                 argument.IsInjected = true;
             }
             else if (parameterType == typeof(object))
             {
-                argument.Type = GetType(parameterTypeInfo, true);
+                argument.Type = GetType(parameterInfo, true);
                 argument.IsInjected = true;
             }
             else if (parameterTypeInfo.GetInterfaces().Any(iface => iface == typeof(IUserContext)))
             {
-                argument.Type = GetType(parameterTypeInfo, true);
+                argument.Type = GetType(parameterInfo, true);
                 argument.IsInjected = true;
             }
             else if (parameterType == typeof(IResolutionContext))
             {
-                argument.Type = GetType(parameterTypeInfo, true);
+                argument.Type = GetType(parameterInfo, true);
                 argument.IsInjected = true;
             }
             else
             {
-                argument.Type = GetType(parameterTypeInfo);
+                argument.Type = GetType(parameterInfo);
             }
 
             if (parameterInfo.HasDefaultValue)

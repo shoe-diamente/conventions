@@ -117,6 +117,17 @@ namespace GraphQL.Conventions.Tests.Adapters
             iface2.Name.ShouldEqual("IInterface2");
         }
 
+        [Test]
+        public void Can_Derive_NonNullableRefs_Type_Implementing_Multiple_Interfaces()
+        {
+            var typeResolver = new TypeResolver();
+            var type = Type<ObjectGraphType>(typeResolver.DeriveType<TypeWithNullableRefs>());
+
+            type.ShouldHaveFields(2);
+            type.ShouldHaveFieldWithName("nonNullableString").OfNonNullableType<StringGraphType>();
+            type.ShouldHaveFieldWithName("nullableString").OfType<StringGraphType>();
+        }
+
         class OutputType
         {
         }
@@ -177,5 +188,14 @@ namespace GraphQL.Conventions.Tests.Adapters
 
             public int Field2 => 2;
         }
+
+        #nullable enable
+        class TypeWithNullableRefs
+        {
+            public string NonNullableString { get; } = "";
+
+            public string? NullableString { get; }
+        }
+        #nullable restore
     }
 }

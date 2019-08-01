@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using GraphQL.Conventions.Attributes;
 using GraphQL.Conventions.Types.Resolution;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Types.Descriptors
 {

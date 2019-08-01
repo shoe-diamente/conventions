@@ -4,7 +4,6 @@
     <Description>GraphQL Conventions for .NET</Description>
     <VersionPrefix>2.1.0</VersionPrefix>
     <Authors>Tommy Lillehagen</Authors>
-    <TargetFrameworks>netstandard1.6.1;net45</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>GraphQL.Conventions</AssemblyName>
     <PackageId>GraphQL.Conventions</PackageId>
@@ -23,6 +22,11 @@
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <!-- Reference: https://github.com/OmniSharp/omnisharp-vscode/issues/2957#issuecomment-516891201 -->
+    <NullableContextOptions>enable</NullableContextOptions>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6.1' ">
@@ -38,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Namotion.Reflection" Version="1.0.6-20190731.3" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="GraphQL" Version="2.4.0" />
   </ItemGroup>

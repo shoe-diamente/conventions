@@ -1,6 +1,8 @@
 using System.Reflection;
 using GraphQL.Conventions.Types.Resolution;
 
+using System.Linq;
+
 namespace GraphQL.Conventions.Types.Descriptors
 {
     public abstract class GraphEntityInfo
