@@ -4,6 +4,7 @@ using GraphQL.Conventions.Tests.Templates;
 using GraphQL.Conventions.Tests.Templates.Extensions;
 using GraphQL.Conventions.Types.Descriptors;
 using GraphQL.Conventions.Types.Resolution;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Tests.Attributes.MetaData.Utilities
 {
@@ -58,7 +59,7 @@ namespace GraphQL.Conventions.Tests.Attributes.MetaData.Utilities
             var entityMapper = new EntityMapper(target);
             var typeResolver = new TypeResolver();
             var typeInfo = typeof(TestObject).GetTypeInfo();
-            entityMapper.MapEntity(new GraphTypeInfo(typeResolver, typeInfo));
+            entityMapper.MapEntity(new GraphTypeInfo(typeResolver, typeInfo, Nullability.Unknown));
             target.HasMappedArgument.ShouldEqual(false);
             target.HasMappedEnumMember.ShouldEqual(false);
             target.HasMappedField.ShouldEqual(false);

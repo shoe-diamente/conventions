@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using GraphQL.Conventions.Types.Resolution;
 using GraphQL.Conventions.Types.Resolution.Extensions;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Types.Descriptors
 {
@@ -15,16 +16,19 @@ namespace GraphQL.Conventions.Types.Descriptors
 
         private readonly List<GraphTypeInfo> _unionTypes = new List<GraphTypeInfo>();
 
-        public GraphTypeInfo(ITypeResolver typeResolver, TypeInfo type)
+        public GraphTypeInfo(ITypeResolver typeResolver, TypeInfo type, Nullability nullability)
             : base(typeResolver, type)
         {
             TypeRepresentation = type ?? (TypeInfo)AttributeProvider;
+            Nullability = nullability;
             DeriveMetaData();
         }
 
         public bool IsRegisteredType { get; set; }
 
         public bool IsPrimitive { get; set; }
+
+        public Nullability Nullability { get; set; }
 
         public bool IsNullable { get; set; }
 
@@ -120,12 +124,22 @@ namespace GraphQL.Conventions.Types.Descriptors
             }
             else if (type.IsGenericType(typeof(Optional<>)))
             {
-                IsNullable = true;
+                IsNullable = Nullability == Nullability.Nullable;
                 type = type.TypeParameter();
                 if (type.IsGenericType(typeof(Nullable<>)))
                 {
                     type = type.TypeParameter();
                 }
+                IsPrimitive = type.IsPrimitiveGraphType();
+            }
+            else if (Nullability == Nullability.Nullable)
+            {
+                IsNullable = true;
+                IsPrimitive = type.IsPrimitiveGraphType();
+            }
+            else if (Nullability == Nullability.NotNullable)
+            {
+                IsNullable = false;
                 IsPrimitive = type.IsPrimitiveGraphType();
             }
             else

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using GraphQL.Conventions.Tests.Templates;
 using GraphQL.Conventions.Tests.Templates.Extensions;
@@ -118,14 +119,25 @@ namespace GraphQL.Conventions.Tests.Adapters
         }
 
         [Test]
-        public void Can_Derive_NonNullableRefs_Type_Implementing_Multiple_Interfaces()
+        public void Can_Derive_Type_WithNRT_GetMethods()
         {
             var typeResolver = new TypeResolver();
-            var type = Type<ObjectGraphType>(typeResolver.DeriveType<TypeWithNullableRefs>());
+            var type = Type<ObjectGraphType>(typeResolver.DeriveType<TypeNRTGetMethods>());
 
             type.ShouldHaveFields(2);
             type.ShouldHaveFieldWithName("nonNullableString").OfNonNullableType<StringGraphType>();
             type.ShouldHaveFieldWithName("nullableString").OfType<StringGraphType>();
+        }
+
+        [Test]
+        public void Can_Derive_Type_WithNRT_Properties()
+        {
+            var typeResolver = new TypeResolver();
+            var type = Type<ObjectGraphType>(typeResolver.DeriveType<TypeNRTGetMethodsWithLists>());
+
+            type.ShouldHaveFields(2);
+            type.ShouldHaveFieldWithName("nonNullableList").OfType<NonNullGraphType<ListGraphType<NonNullGraphType<StringGraphType>>>>();
+            type.ShouldHaveFieldWithName("nullableList").OfType<ListGraphType<StringGraphType>>();
         }
 
         class OutputType
@@ -189,13 +201,20 @@ namespace GraphQL.Conventions.Tests.Adapters
             public int Field2 => 2;
         }
 
-        #nullable enable
-        class TypeWithNullableRefs
+#nullable enable
+        class TypeNRTGetMethods
         {
             public string NonNullableString { get; } = "";
 
             public string? NullableString { get; }
         }
-        #nullable restore
+
+        class TypeNRTGetMethodsWithLists
+        {
+            public List<string> NonNullableList { get; } = new List<string>();
+
+            public List<string?>? NullableList { get; } = null;
+        }
+#nullable restore
     }
 }

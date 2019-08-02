@@ -24,7 +24,7 @@ namespace GraphQL.Conventions.Types.Resolution
 
         private readonly ITypeResolver _typeResolver;
 
-        private readonly CachedRegistry<TypeInfo, GraphTypeInfo> _typeCache = new CachedRegistry<TypeInfo, GraphTypeInfo>();
+        private readonly CachedRegistry<(TypeInfo, Nullability), GraphTypeInfo> _typeCache = new CachedRegistry<(TypeInfo, Nullability), GraphTypeInfo>();
 
         private readonly MetaDataAttributeHandler _metaDataHandler = new MetaDataAttributeHandler();
 
@@ -62,6 +62,7 @@ namespace GraphQL.Conventions.Types.Resolution
             }
 
             var queryProp = queryField.ToContextualProperty();
+            var x = typeInfo.ToContextualType();
 
             var schemaInfo = new GraphSchemaInfo();
             _typeResolver.ActiveSchema = schemaInfo;
@@ -77,39 +78,34 @@ namespace GraphQL.Conventions.Types.Resolution
             return schemaInfo;
         }
 
-        public GraphTypeInfo GetType(PropertyInfo property, bool isInjected = false)
+        private GraphTypeInfo GetType(PropertyInfo property, bool isInjected = false)
         {
             var contextual = property.ToContextualProperty();
-            return GetType(property.PropertyType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+            return GetType(property.PropertyType.GetTypeInfo(), isInjected, contextual.Nullability);
         }
 
-        public GraphTypeInfo GetType(ParameterInfo parameter, bool isInjected = false)
+        private GraphTypeInfo GetType(ParameterInfo parameter, bool isInjected = false)
         {
             var contextual = parameter.ToContextualParameter();
-            return GetType(parameter.ParameterType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+            return GetType(parameter.ParameterType.GetTypeInfo(), isInjected, contextual.Nullability);
         }
 
-        public GraphTypeInfo GetType(MethodInfo method, bool isInjected = false)
-        {
-            var contextual = method.ToContextualMember();
-            return GetType(method.ReturnType.GetTypeInfo(), isInjected, contextual.IsNullableType);
-        }
-
-        public GraphTypeInfo GetType(FieldInfo field, bool isInjected = false)
+        private GraphTypeInfo GetType(FieldInfo field, bool isInjected = false)
         {
             var contextual = field.ToContextualField();
-            return GetType(field.FieldType.GetTypeInfo(), isInjected, contextual.IsNullableType);
+            return GetType(field.FieldType.GetTypeInfo(), isInjected, contextual.Nullability);
         }
 
-        public GraphTypeInfo GetType(TypeInfo typeInfo, bool isInjected = false, bool? overrideNullable = null)
+        public GraphTypeInfo GetType(TypeInfo typeInfo, bool isInjected = false, Nullability nullability = Nullability.Unknown)
         {
-            var type = _typeCache.GetEntity(typeInfo);
+            var type = _typeCache.GetEntity((typeInfo, nullability));
             if (type != null)
             {
                 return type;
             }
 
-            type = _typeCache.AddEntity(typeInfo, new GraphTypeInfo(_typeResolver, typeInfo));
+            type = _typeCache.AddEntity((typeInfo, nullability), new GraphTypeInfo(_typeResolver, typeInfo, nullability));
+
             if (type.IsPrimitive && !type.IsEnumerationType)
             {
                 return type;
@@ -125,11 +121,6 @@ namespace GraphQL.Conventions.Types.Resolution
             {
                 type.IsIgnored = true;
                 return type;
-            }
-
-            if (overrideNullable.HasValue)
-            {
-                type.IsNullable = overrideNullable.Value;
             }
 
             var isInjectedType =
@@ -322,7 +313,7 @@ namespace GraphQL.Conventions.Types.Resolution
             var methodInfo = memberInfo as MethodInfo;
             if (methodInfo != null)
             {
-                field.Type = GetType(methodInfo);
+                field.Type = GetType(methodInfo.ReturnParameter);
                 field.Arguments.AddRange(GetArguments(methodInfo));
             }
 
