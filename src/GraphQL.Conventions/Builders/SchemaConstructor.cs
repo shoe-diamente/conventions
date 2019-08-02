@@ -6,6 +6,7 @@ using GraphQL.Conventions.Adapters;
 using GraphQL.Conventions.Relay;
 using GraphQL.Conventions.Types.Descriptors;
 using GraphQL.Conventions.Types.Resolution;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Builders
 {
@@ -57,9 +58,9 @@ namespace GraphQL.Conventions.Builders
 
             schemaInfo = new GraphSchemaInfo
             {
-                Query = _typeResolver.DeriveType(typeof(Query).GetTypeInfo()),
-                Mutation = _typeResolver.DeriveType(typeof(Mutation).GetTypeInfo()),
-                Subscription = _typeResolver.DeriveType(typeof(Subscription).GetTypeInfo()),
+                Query = _typeResolver.DeriveType(typeof(Query).ToContextualType()),
+                Mutation = _typeResolver.DeriveType(typeof(Mutation).ToContextualType()),
+                Subscription = _typeResolver.DeriveType(typeof(Subscription).ToContextualType()),
                 TypeResolutionDelegate = TypeResolutionDelegate,
             };
 

@@ -2,6 +2,7 @@ using System.Reflection;
 using GraphQL.Conventions.Attributes;
 using GraphQL.Conventions.Attributes.Collectors;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Extensions
 {
@@ -12,7 +13,7 @@ namespace GraphQL.Conventions.Extensions
         {
         }
 
-        public override void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public override void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
             if (type.Name?.EndsWith("Dto") ?? false)
             {

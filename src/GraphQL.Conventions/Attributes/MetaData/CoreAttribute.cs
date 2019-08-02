@@ -3,6 +3,7 @@ using System.Reflection;
 using GraphQL.Conventions.Attributes.Collectors;
 using GraphQL.Conventions.Types.Descriptors;
 using GraphQL.Conventions.Types.Resolution.Extensions;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Attributes.MetaData
 {
@@ -14,18 +15,18 @@ namespace GraphQL.Conventions.Attributes.MetaData
         {
         }
 
-        public override void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public override void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
-            var typeRepresentation = typeInfo.GetTypeRepresentation();
+            var typeRepresentation = contextualType.Type.GetTypeRepresentation();
             if (typeRepresentation.IsSubclassOf(typeof(Union)))
             {
-                DeclareUnionType(type, typeRepresentation);
+                DeclareUnionType(type, contextualType);
             }
         }
 
-        private void DeclareUnionType(GraphTypeInfo entity, TypeInfo typeInfo)
+        private void DeclareUnionType(GraphTypeInfo entity, ContextualType contextualType)
         {
-            var unionType = typeInfo.BaseType.GetTypeInfo();
+            var unionType = contextualType.Type.BaseType.GetTypeInfo();
             if (unionType != null &&
                 unionType.Name.StartsWith(nameof(Union), StringComparison.Ordinal) &&
                 unionType.IsSubclassOf(typeof(Union)) &&
@@ -33,7 +34,7 @@ namespace GraphQL.Conventions.Attributes.MetaData
             {
                 foreach (var type in unionType.GenericTypeArguments)
                 {
-                    entity.AddUnionType(entity.TypeResolver.DeriveType(type.GetTypeInfo()));
+                    entity.AddUnionType(entity.TypeResolver.DeriveType(contextualType));
                 }
             }
         }

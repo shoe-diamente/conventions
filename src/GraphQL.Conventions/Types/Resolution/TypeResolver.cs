@@ -1,5 +1,6 @@
 using GraphQL.Conventions.Relay;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,9 @@ namespace GraphQL.Conventions.Types.Resolution
 
         public virtual GraphSchemaInfo DeriveSchema(TypeInfo typeInfo) => _reflector.GetSchema(typeInfo);
 
-        public virtual GraphTypeInfo DeriveType(TypeInfo typeInfo) => _reflector.GetType(typeInfo);
+        public virtual GraphTypeInfo DeriveType(ContextualType typeInfo) => _reflector.GetType(typeInfo);
 
-        public virtual GraphTypeInfo DeriveType<TType>() => DeriveType(typeof(TType).GetTypeInfo());
+        public virtual GraphTypeInfo DeriveType<TType>() => DeriveType(typeof(TType).ToContextualType());
 
         public virtual GraphEntityInfo ApplyAttributes(GraphEntityInfo entityInfo) =>
             _reflector.ApplyAttributes(entityInfo);

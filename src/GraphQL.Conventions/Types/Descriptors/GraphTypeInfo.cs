@@ -16,19 +16,16 @@ namespace GraphQL.Conventions.Types.Descriptors
 
         private readonly List<GraphTypeInfo> _unionTypes = new List<GraphTypeInfo>();
 
-        public GraphTypeInfo(ITypeResolver typeResolver, TypeInfo type, Nullability nullability)
-            : base(typeResolver, type)
+        public GraphTypeInfo(ITypeResolver typeResolver, ContextualType type)
+            : base(typeResolver, type.Type)
         {
-            TypeRepresentation = type ?? (TypeInfo)AttributeProvider;
-            Nullability = nullability;
+            ContextualType = type;
             DeriveMetaData();
         }
 
         public bool IsRegisteredType { get; set; }
 
         public bool IsPrimitive { get; set; }
-
-        public Nullability Nullability { get; set; }
 
         public bool IsNullable { get; set; }
 
@@ -60,7 +57,9 @@ namespace GraphQL.Conventions.Types.Descriptors
 
         public List<GraphFieldInfo> Fields { get; internal set; } = new List<GraphFieldInfo>();
 
-        public TypeInfo TypeRepresentation { get; set; }
+        public ContextualType ContextualType { get; set; }
+
+        public TypeInfo TypeRepresentation => ContextualType.TypeInfo;
 
         public GraphTypeInfo TypeParameter { get; set; }
 
@@ -96,76 +95,77 @@ namespace GraphQL.Conventions.Types.Descriptors
 
         private void DeriveMetaData()
         {
-            var type = TypeRepresentation;
+            var type = ContextualType;
+            var typeInfo = type.Type.GetTypeInfo();
 
-            if (type.IsGenericType(typeof(IObservable<>))) 
+            if (typeInfo.IsGenericType(typeof(IObservable<>))) 
             {
                 IsObservable = true;
                 type = type.TypeParameter();
             }
 
-            if (type.IsGenericType(typeof(Task<>)))
+            if (typeInfo.IsGenericType(typeof(Task<>)))
             {
                 IsTask = true;
                 type = type.TypeParameter();
             }
 
-            if (type.IsGenericType(typeof(Nullable<>)))
+            if (typeInfo.IsGenericType(typeof(Nullable<>)))
             {
                 IsNullable = true;
                 type = type.TypeParameter();
-                IsPrimitive = type.IsPrimitiveGraphType();
+                IsPrimitive = typeInfo.IsPrimitiveGraphType();
             }
-            else if (type.IsGenericType(typeof(NonNull<>)))
+            else if (typeInfo.IsGenericType(typeof(NonNull<>)))
             {
                 IsNullable = false;
                 type = type.TypeParameter();
-                IsPrimitive = type.IsPrimitiveGraphType();
+                IsPrimitive = typeInfo.IsPrimitiveGraphType();
             }
-            else if (type.IsGenericType(typeof(Optional<>)))
+            else if (typeInfo.IsGenericType(typeof(Optional<>)))
             {
-                IsNullable = Nullability == Nullability.Nullable;
+                IsNullable = ContextualType.Nullability == Nullability.Nullable;
                 type = type.TypeParameter();
-                if (type.IsGenericType(typeof(Nullable<>)))
+                if (typeInfo.IsGenericType(typeof(Nullable<>)))
                 {
                     type = type.TypeParameter();
                 }
-                IsPrimitive = type.IsPrimitiveGraphType();
+                IsPrimitive = typeInfo.IsPrimitiveGraphType();
             }
-            else if (Nullability == Nullability.Nullable)
+            else if (ContextualType.Nullability == Nullability.Nullable)
             {
                 IsNullable = true;
-                IsPrimitive = type.IsPrimitiveGraphType();
+                IsPrimitive = typeInfo.IsPrimitiveGraphType();
             }
-            else if (Nullability == Nullability.NotNullable)
+            else if (ContextualType.Nullability == Nullability.NotNullable)
             {
                 IsNullable = false;
-                IsPrimitive = type.IsPrimitiveGraphType();
+                IsPrimitive = typeInfo.IsPrimitiveGraphType();
             }
             else
             {
-                IsNullable = !type.IsValueType;
-                IsPrimitive = type.IsPrimitiveGraphType();
+                IsNullable = !typeInfo.IsValueType;
+                IsPrimitive = typeInfo.IsPrimitiveGraphType();
             }
 
-            if (type.IsEnumerableGraphType())
+            if (typeInfo.IsEnumerableGraphType())
             {
                 IsListType = true;
-                IsArrayType = type.IsArray;
+                IsArrayType = typeInfo.IsArray;
                 IsPrimitive = true;
-                TypeParameter = TypeResolver.DeriveType(type.TypeParameter());
+                TypeParameter = TypeResolver.DeriveType(ContextualType.TypeParameter());
             }
             else
             {
                 IsListType = false;
             }
 
-            var typeRegistration = TypeResolver.LookupType(type);
+            var typeRegistration = TypeResolver.LookupType(typeInfo);
             IsRegisteredType = typeRegistration != null;
             IsOutputType = true;
-            IsInputType = IsPrimitive || type.IsValueType || (typeRegistration?.IsScalar ?? false);
-            IsInterfaceType = !IsListType && type.IsInterface;
-            IsEnumerationType = type.IsEnum;
+            IsInputType = IsPrimitive || typeInfo.IsValueType || (typeRegistration?.IsScalar ?? false);
+            IsInterfaceType = !IsListType && typeInfo.IsInterface;
+            IsEnumerationType = typeInfo.IsEnum;
             Name = typeRegistration?.Name;
         }
     }

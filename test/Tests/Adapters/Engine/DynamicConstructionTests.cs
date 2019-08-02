@@ -7,6 +7,7 @@ using GraphQL.Conventions.Types.Resolution;
 using GraphQL.Resolvers;
 using GraphQL.Types;
 using GraphQL.Utilities;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Tests.Adapters.Engine
 {
@@ -18,9 +19,9 @@ namespace GraphQL.Conventions.Tests.Adapters.Engine
             var typeAdapter = new GraphTypeAdapter();
             var typeResolver = new TypeResolver();
 
-            var userRepositoryInterface = GetGraphType(typeAdapter, typeResolver, typeof(IUserRepository).GetTypeInfo());
-            var userRepositoryType = GetGraphType(typeAdapter, typeResolver, typeof(UserRepository).GetTypeInfo());
-            var userType = GetGraphType(typeAdapter, typeResolver, typeof(User).GetTypeInfo());
+            var userRepositoryInterface = GetGraphType(typeAdapter, typeResolver, typeof(IUserRepository).ToContextualType());
+            var userRepositoryType = GetGraphType(typeAdapter, typeResolver, typeof(UserRepository).ToContextualType());
+            var userType = GetGraphType(typeAdapter, typeResolver, typeof(User).ToContextualType());
 
             var schema = new Schema
             {
@@ -65,9 +66,9 @@ namespace GraphQL.Conventions.Tests.Adapters.Engine
             result.Data.ShouldHaveFieldWithValue("users", "getUserById", "name", "User #1");
         }
 
-        private IGraphType GetGraphType(GraphTypeAdapter typeAdapter, TypeResolver typeResolver, TypeInfo typeInfo)
+        private IGraphType GetGraphType(GraphTypeAdapter typeAdapter, TypeResolver typeResolver, ContextualType contextualType)
         {
-            var graphTypeInfo = typeResolver.DeriveType(typeInfo);
+            var graphTypeInfo = typeResolver.DeriveType(contextualType);
             return typeAdapter.DeriveType(graphTypeInfo);
         }
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using GraphQL.Conventions.Attributes;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Relay
 {
@@ -17,24 +18,24 @@ namespace GraphQL.Conventions.Relay
             _operationType = operationType;
         }
 
-        public override void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public override void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
-            TypeInfo viewer;
-            TypeInfo viewerReferrer;
+            ContextualType viewer;
+            ContextualType viewerReferrer;
 
             switch (_operationType)
             {
                 case OperationType.Query:
-                    viewer = typeof(QueryViewer).GetTypeInfo();
-                    viewerReferrer = typeof(QueryViewerReferrer).GetTypeInfo();
+                    viewer = typeof(QueryViewer).ToContextualType();
+                    viewerReferrer = typeof(QueryViewerReferrer).ToContextualType();
                     break;
                 case OperationType.Mutation:
-                    viewer = typeof(MutationViewer).GetTypeInfo();
-                    viewerReferrer = typeof(MutationViewerReferrer).GetTypeInfo();
+                    viewer = typeof(MutationViewer).ToContextualType();
+                    viewerReferrer = typeof(MutationViewerReferrer).ToContextualType();
                     break;
                 case OperationType.Subscription:
-                    viewer = typeof(SubscriptionViewer).GetTypeInfo();
-                    viewerReferrer = typeof(SubscriptionViewerReferrer).GetTypeInfo();
+                    viewer = typeof(SubscriptionViewer).ToContextualType();
+                    viewerReferrer = typeof(SubscriptionViewerReferrer).ToContextualType();
                     break;
                 default:
                     return;

@@ -7,6 +7,7 @@ using GraphQL.Conventions.Attributes.Collectors;
 using GraphQL.Conventions.Attributes.MetaData.Utilities;
 using GraphQL.Conventions.Types.Descriptors;
 using GraphQL.Conventions.Types.Resolution.Extensions;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions
 {
@@ -54,13 +55,14 @@ namespace GraphQL.Conventions
             entity.Name = _nameNormalizer.AsEnumMemberName(fieldInfo.Name);
         }
 
-        public override void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public override void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
             if (type.IsRegisteredType)
             {
                 return;
             }
 
+            var typeInfo = contextualType.Type.GetTypeInfo();
             if (typeInfo.IsGenericType(typeof(Task<>)))
             {
                 typeInfo = typeInfo.TypeParameter();
@@ -69,9 +71,9 @@ namespace GraphQL.Conventions
             var typeName = _nameNormalizer.AsTypeName(typeInfo.Name);
             if (typeInfo.IsGenericType)
             {
-                var genericTypeNames = typeInfo
-                    .GenericTypeArguments
-                    .Select(typeArg => DeriveTypeName(type, typeArg.GetTypeInfo()));
+                var genericTypeNames = contextualType
+                    .GenericArguments
+                    .Select(typeArg => DeriveTypeName(type, typeArg));
 
                 if (typeInfo.IsGenericType(typeof(Nullable<>)) ||
                     typeInfo.IsGenericType(typeof(NonNull<>)) ||
@@ -90,9 +92,9 @@ namespace GraphQL.Conventions
             }
         }
 
-        private static string DeriveTypeName(GraphEntityInfo entityInfo, TypeInfo typeInfo)
+        private static string DeriveTypeName(GraphEntityInfo entityInfo, ContextualType contextualType)
         {
-            var entity = entityInfo.TypeResolver.DeriveType(typeInfo);
+            var entity = entityInfo.TypeResolver.DeriveType(contextualType);
             entityInfo.TypeResolver.ApplyAttributes(entity);
             return entity.Name;
         }

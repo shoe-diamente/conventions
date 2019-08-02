@@ -52,7 +52,7 @@ namespace GraphQL.Conventions.Attributes.MetaData.Utilities
             var typeInfo = entity.AttributeProvider as TypeInfo;
             if (typeEntity != null && typeInfo != null)
             {
-                _mappableTarget.MapType(typeEntity, typeInfo);
+                _mappableTarget.MapType(typeEntity, typeEntity.ContextualType);
                 return;
             }
 

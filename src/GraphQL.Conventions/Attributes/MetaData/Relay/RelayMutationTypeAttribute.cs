@@ -2,6 +2,7 @@
 using System.Reflection;
 using GraphQL.Conventions.Attributes;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Relay
 {
@@ -13,7 +14,7 @@ namespace GraphQL.Conventions.Relay
         {
         }
 
-        public override void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public override void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
             foreach (var field in type.Fields)
             {

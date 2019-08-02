@@ -24,7 +24,10 @@ namespace GraphQL.Conventions.Types.Resolution
 
         private readonly ITypeResolver _typeResolver;
 
-        private readonly CachedRegistry<(TypeInfo, Nullability), GraphTypeInfo> _typeCache = new CachedRegistry<(TypeInfo, Nullability), GraphTypeInfo>();
+        private readonly CachedRegistry<ContextualType, GraphTypeInfo> _typeCache = new CachedRegistry<ContextualType, GraphTypeInfo>();
+
+        private ContextualType GetCacheKey(ContextualType type)
+            => type;
 
         private readonly MetaDataAttributeHandler _metaDataHandler = new MetaDataAttributeHandler();
 
@@ -81,30 +84,30 @@ namespace GraphQL.Conventions.Types.Resolution
         private GraphTypeInfo GetType(PropertyInfo property, bool isInjected = false)
         {
             var contextual = property.ToContextualProperty();
-            return GetType(property.PropertyType.GetTypeInfo(), isInjected, contextual.Nullability);
+            return GetType(contextual, isInjected);
         }
 
         private GraphTypeInfo GetType(ParameterInfo parameter, bool isInjected = false)
         {
             var contextual = parameter.ToContextualParameter();
-            return GetType(parameter.ParameterType.GetTypeInfo(), isInjected, contextual.Nullability);
+            return GetType(contextual, isInjected);
         }
 
         private GraphTypeInfo GetType(FieldInfo field, bool isInjected = false)
         {
             var contextual = field.ToContextualField();
-            return GetType(field.FieldType.GetTypeInfo(), isInjected, contextual.Nullability);
+            return GetType(contextual, isInjected);
         }
 
-        public GraphTypeInfo GetType(TypeInfo typeInfo, bool isInjected = false, Nullability nullability = Nullability.Unknown)
+        public GraphTypeInfo GetType(ContextualType contextualType, bool isInjected = false)
         {
-            var type = _typeCache.GetEntity((typeInfo, nullability));
+            var type = _typeCache.GetEntity(GetCacheKey(contextualType));
             if (type != null)
             {
                 return type;
             }
 
-            type = _typeCache.AddEntity((typeInfo, nullability), new GraphTypeInfo(_typeResolver, typeInfo, nullability));
+            type = _typeCache.AddEntity(GetCacheKey(contextualType), new GraphTypeInfo(_typeResolver, contextualType));
 
             if (type.IsPrimitive && !type.IsEnumerationType)
             {
@@ -117,7 +120,7 @@ namespace GraphQL.Conventions.Types.Resolution
                 return type;
             }
 
-            if (typeInfo.IsGenericParameter || typeInfo.ContainsGenericParameters)
+            if (contextualType.Type.IsGenericParameter || contextualType.Type.ContainsGenericParameters)
             {
                 type.IsIgnored = true;
                 return type;
@@ -144,7 +147,7 @@ namespace GraphQL.Conventions.Types.Resolution
                 DeriveFields(type);
             }
 
-            _metaDataHandler.DeriveMetaData(type, GetTypeInfo(typeInfo));
+            _metaDataHandler.DeriveMetaData(type, GetTypeInfo(contextualType.Type));
 
             if (type.IsInterfaceType && !type.IsIgnored && !isInjectedType)
             {
@@ -155,7 +158,7 @@ namespace GraphQL.Conventions.Types.Resolution
                     var ti = t.GetTypeInfo();
                     if (!ti.IsInterface && IsValidType(ti))
                     {
-                        GetType(ti);
+                        GetType(t.ToContextualType());
                     }
                 }
             }
@@ -189,7 +192,7 @@ namespace GraphQL.Conventions.Types.Resolution
 
             var interfaces = nativeInterfaces
                 .Where(t => IsValidType(t.GetTypeInfo()))
-                .Select(iface => GetType(iface.GetTypeInfo()))
+                .Select(iface => GetType(iface.ToContextualType()))
                 .Where(iface => iface.IsInterfaceType && !iface.IsIgnored);
 
             foreach (var iface in interfaces)

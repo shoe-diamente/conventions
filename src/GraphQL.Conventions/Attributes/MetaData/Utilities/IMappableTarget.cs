@@ -1,5 +1,6 @@
 using System.Reflection;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Attributes.MetaData.Utilities
 {
@@ -11,6 +12,6 @@ namespace GraphQL.Conventions.Attributes.MetaData.Utilities
 
         void MapEnumMember(GraphFieldInfo entity, FieldInfo fieldInfo);
 
-        void MapType(GraphTypeInfo entity, TypeInfo typeInfo);
+        void MapType(GraphTypeInfo entity, ContextualType typeInfo);
     }
 }

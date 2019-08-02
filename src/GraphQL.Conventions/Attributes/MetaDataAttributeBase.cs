@@ -1,6 +1,7 @@
 using System.Reflection;
 using GraphQL.Conventions.Attributes.MetaData.Utilities;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Attributes
 {
@@ -42,7 +43,7 @@ namespace GraphQL.Conventions.Attributes
         {
         }
 
-        public virtual void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public virtual void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
         }
 

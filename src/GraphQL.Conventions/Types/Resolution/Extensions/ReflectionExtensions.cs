@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Types.Resolution.Extensions
 {
@@ -43,6 +44,17 @@ namespace GraphQL.Conventions.Types.Resolution.Extensions
             }
             return type.IsGenericType
                 ? type.GenericTypeArguments.First().GetTypeInfo()
+                : null;
+        }
+
+        public static ContextualType TypeParameter(this ContextualType type)
+        {
+            if (type.Type.IsArray)
+            {
+                return type.ElementType;
+            }
+            return type.Type.IsGenericType
+                ? type.GenericArguments.First()
                 : null;
         }
 

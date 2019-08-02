@@ -19,6 +19,7 @@
     <PackageReference Include="NSubstitute" Version="2.0.0-*" />
     <PackageReference Include="ReportGenerator" Version="2.5.9" />
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
+    <PackageReference Include="Namotion.Reflection" Version="1.0.6-20190731.3" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

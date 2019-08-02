@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using GraphQL.Conventions.Attributes;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions
 {
@@ -13,7 +14,7 @@ namespace GraphQL.Conventions
         {
         }
 
-        public override void MapType(GraphTypeInfo type, TypeInfo typeInfo)
+        public override void MapType(GraphTypeInfo type, ContextualType contextualType)
         {
             type.IsInputType = true;
             type.IsOutputType = false;

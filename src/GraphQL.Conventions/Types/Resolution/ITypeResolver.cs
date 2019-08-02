@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using GraphQL.Conventions.Types.Descriptors;
+using Namotion.Reflection;
 
 namespace GraphQL.Conventions.Types.Resolution
 {
@@ -8,7 +9,7 @@ namespace GraphQL.Conventions.Types.Resolution
     {
         GraphSchemaInfo DeriveSchema(TypeInfo typeInfo);
 
-        GraphTypeInfo DeriveType(TypeInfo typeInfo);
+        GraphTypeInfo DeriveType(ContextualType typeInfo);
 
         GraphEntityInfo ApplyAttributes(GraphEntityInfo entityInfo);
 

@@ -58,8 +58,7 @@ namespace GraphQL.Conventions.Tests.Attributes.MetaData.Utilities
             var target = new MappableTarget();
             var entityMapper = new EntityMapper(target);
             var typeResolver = new TypeResolver();
-            var typeInfo = typeof(TestObject).GetTypeInfo();
-            entityMapper.MapEntity(new GraphTypeInfo(typeResolver, typeInfo, Nullability.Unknown));
+            entityMapper.MapEntity(new GraphTypeInfo(typeResolver, typeof(TestObject).ToContextualType()));
             target.HasMappedArgument.ShouldEqual(false);
             target.HasMappedEnumMember.ShouldEqual(false);
             target.HasMappedField.ShouldEqual(false);
@@ -101,7 +100,7 @@ namespace GraphQL.Conventions.Tests.Attributes.MetaData.Utilities
                 HasMappedField = true;
             }
 
-            public void MapType(GraphTypeInfo entity, TypeInfo typeInfo)
+            public void MapType(GraphTypeInfo entity, ContextualType contextualType)
             {
                 HasMappedType = true;
             }
