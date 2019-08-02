@@ -11,7 +11,7 @@ namespace GraphQL.Conventions.Adapters
 {
     public class GraphTypeAdapter : IGraphTypeAdapter<ISchema, IGraphType>
     {
-        private readonly CachedRegistry<Type, IGraphType> _typeDescriptors = new CachedRegistry<Type, IGraphType>();
+        private readonly CachedRegistry<ContextualType, IGraphType> _typeDescriptors = new CachedRegistry<ContextualType, IGraphType>();
 
         private readonly Dictionary<string, Type> _registeredScalarTypes = new Dictionary<string, Type>();
 
@@ -54,7 +54,7 @@ namespace GraphQL.Conventions.Adapters
             var primitiveType = GetPrimitiveType(typeInfo);
             var graphType = primitiveType != null
                 ? WrapNonNullableType(typeInfo, Activator.CreateInstance(primitiveType) as GraphType)
-                : _typeDescriptors.GetEntity(typeInfo.TypeRepresentation.AsType());
+                : _typeDescriptors.GetEntity(typeInfo.ContextualType);
             return graphType ?? GetComplexType(typeInfo);
         }
 
@@ -65,7 +65,7 @@ namespace GraphQL.Conventions.Adapters
 
         private IGraphType DeriveTypeFromTypeInfo(Type type)
         {
-            var graphType = _typeDescriptors.GetEntity(type);
+            var graphType = _typeDescriptors.GetEntity(type.ToContextualType());
             if (graphType != null)
             {
                 return graphType;
@@ -208,8 +208,8 @@ namespace GraphQL.Conventions.Adapters
 
         private IGraphType CacheType(GraphTypeInfo typeInfo, IGraphType graphType)
         {
-            _typeDescriptors.AddEntity(typeInfo.TypeRepresentation.AsType(), WrapNonNullableType(typeInfo, graphType));
-            _typeDescriptors.AddEntity(graphType.GetType(), graphType);
+            _typeDescriptors.AddEntity(typeInfo.ContextualType, WrapNonNullableType(typeInfo, graphType));
+            _typeDescriptors.AddEntity(graphType.GetType().ToContextualType(), graphType);
             return graphType;
         }
 
